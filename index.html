@@ -1,0 +1,1612 @@
+<!doctype html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>RAFINOOR • Complete Master Admin Panel</title>
+  <style>
+    :root {
+      --bg:#0b1220; --card:#111c31; --border:#263753; --text:#e5eefc;
+      --muted:#91a4c4; --accent:#2563eb; --ok:#4ade80; --bad:#fb7185;
+      --warn:#fbbf24; --header:#0f1a2e; --sidebar:#0d1526;
+    }
+    [data-theme="light"] {
+      --bg:#f1f5f9; --card:#fff; --border:#cbd5e1; --text:#0f172a;
+      --muted:#64748b; --accent:#2563eb; --ok:#16a34a; --bad:#dc2626;
+      --warn:#d97706; --header:#fff; --sidebar:#e2e8f0;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font:14px/1.45 system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    .layout{display:flex;min-height:100vh}
+    .sidebar{
+      width:240px;background:var(--sidebar);border-right:1px solid var(--border);
+      display:flex;flex-direction:column;position:fixed;height:100vh;z-index:40;
+      transition:transform .2s;
+    }
+    .sidebar.collapsed{transform:translateX(-100%)}
+    .sidebar-header{padding:16px;border-bottom:1px solid var(--border)}
+    .sidebar-header b{font-size:15px;display:block}
+    .sidebar-header span{font-size:11px;color:var(--muted)}
+    .nav{flex:1;overflow-y:auto;padding:8px}
+    .nav-item{
+      display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;
+      cursor:pointer;color:var(--muted);font-weight:600;margin-bottom:2px;border:none;background:none;width:100%;text-align:left;font:inherit
+    }
+    .nav-item:hover,.nav-item.active{background:var(--card);color:var(--text)}
+    .nav-item.active{border-left:3px solid var(--accent)}
+    .main-wrap{flex:1;margin-left:240px;display:flex;flex-direction:column;min-height:100vh}
+    .topbar{
+      padding:12px 18px;background:var(--header);border-bottom:1px solid var(--border);
+      display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:30;gap:10px;flex-wrap:wrap
+    }
+    .content{padding:18px;flex:1;max-width:1600px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px}
+    .num{font-size:26px;font-weight:700;letter-spacing:-.5px}
+    .muted{color:var(--muted)}
+    input,button,select,textarea{
+      padding:9px 12px;border-radius:8px;border:1px solid var(--border);
+      background:var(--bg);color:var(--text);font:inherit
+    }
+    button{cursor:pointer;background:var(--accent);color:#fff;border:none;font-weight:600}
+    button.secondary{background:transparent;border:1px solid var(--border);color:var(--text)}
+    button.danger{background:#dc2626}
+    button.success{background:#16a34a}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;align-items:center}
+    .table-wrap{overflow:auto;max-height:520px;border-radius:8px}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px 12px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+    th{position:sticky;top:0;background:#17243a;z-index:5;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+    [data-theme="light"] th{background:#e2e8f0}
+    pre{margin:0;white-space:pre-wrap;word-break:break-word;font-size:12px;max-width:420px}
+    .ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+    .hidden{display:none!important}
+    .pill{padding:4px 10px;border-radius:999px;background:var(--border);font-size:12px;font-weight:600}
+    .badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700}
+    .b-ok{background:rgba(74,222,128,.15);color:var(--ok)}
+    .b-bad{background:rgba(251,113,133,.15);color:var(--bad)}
+    .b-warn{background:rgba(251,191,36,.15);color:var(--warn)}
+    .b-info{background:rgba(37,99,235,.15);color:#60a5fa}
+    .avatar{
+      width:36px;height:36px;border-radius:50%;background:var(--accent);
+      display:grid;place-items:center;font-weight:700;color:#fff;font-size:14px;overflow:hidden;flex-shrink:0
+    }
+    .avatar img{width:100%;height:100%;object-fit:cover}
+    .thumb{width:48px;height:48px;border-radius:8px;object-fit:cover;border:1px solid var(--border);cursor:pointer}
+    .thumb-lg{width:120px;height:120px;border-radius:10px;object-fit:cover;border:1px solid var(--border)}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .form-grid .full{grid-column:1/-1}
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600}
+    .form-group{margin-bottom:10px}
+    .modal-bg{
+      position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;
+      justify-content:center;z-index:100;padding:16px
+    }
+    .modal{
+      background:var(--card);border:1px solid var(--border);border-radius:14px;
+      padding:20px;max-width:640px;width:100%;max-height:85vh;overflow:auto
+    }
+    .modal h3{margin-bottom:14px}
+    .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+    .empty{text-align:center;padding:40px 20px;color:var(--muted)}
+    .photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+    .photo-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer}
+    .photo-card img{width:100%;height:110px;object-fit:cover;display:block}
+    .photo-card .meta{padding:8px;font-size:12px}
+    .dropzone{
+      border:2px dashed var(--border);border-radius:12px;padding:28px;text-align:center;
+      color:var(--muted);cursor:pointer;transition:.15s
+    }
+    .dropzone:hover,.dropzone.drag{border-color:var(--accent);background:rgba(37,99,235,.08)}
+    .two-col{display:grid;grid-template-columns:1fr 320px;gap:16px}
+    @media(max-width:1100px){.two-col{grid-template-columns:1fr}}
+    @media(max-width:800px){
+      .sidebar{transform:translateX(-100%)}
+      .sidebar.open{transform:translateX(0)}
+      .main-wrap{margin-left:0}
+      .form-grid{grid-template-columns:1fr}
+    }
+    .menu-btn{display:none;background:transparent;border:1px solid var(--border);color:var(--text);padding:8px 12px}
+    @media(max-width:800px){.menu-btn{display:inline-flex}}
+    .stat-row{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:13px}
+    .log-line{padding:6px 0;border-bottom:1px solid var(--border);font-size:13px}
+    .progress{height:6px;background:var(--border);border-radius:4px;overflow:hidden;margin-top:6px}
+    .progress>div{height:100%;background:var(--accent);transition:width .3s}
+    #loginBox{max-width:420px;margin:12vh auto;text-align:center}
+    .user-chip{display:inline-flex;align-items:center;gap:8px;padding:4px 10px;background:var(--bg);border-radius:999px;border:1px solid var(--border);font-size:12px}
+  </style>
+</head>
+<body>
+  <!-- LOGIN -->
+  <div id="loginScreen">
+    <div id="loginBox" class="card">
+      <h2 style="margin-bottom:6px">RAFINOOR Master Admin</h2>
+      <p class="muted" style="margin-bottom:16px">Complete Admin Panel • Local + Firebase</p>
+      <button id="googleBtn" style="width:100%;margin-bottom:10px">Continue with Google</button>
+      <p class="muted" style="font-size:12px;margin:12px 0">অথবা Local Admin (অফলাইন)</p>
+      <input id="localPass" type="password" placeholder="Local Admin Password" style="width:100%;margin-bottom:8px">
+      <button id="localLoginBtn" class="secondary" style="width:100%">Local Login</button>
+      <p id="loginErr" class="bad" style="margin-top:12px"></p>
+      <p class="muted" style="font-size:11px;margin-top:14px">Default local password: <b>admin123</b></p>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="appScreen" class="hidden">
+    <div class="layout">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <b>RAFINOOR ADMIN</b>
+          <span>Master Control Panel</span>
+        </div>
+        <nav class="nav" id="nav">
+          <button class="nav-item active" data-page="dashboard">📊 Dashboard</button>
+          <button class="nav-item" data-page="users">👥 Users</button>
+          <button class="nav-item" data-page="sites">🏭 Sites</button>
+          <button class="nav-item" data-page="work">📋 Work Orders</button>
+          <button class="nav-item" data-page="ops">⚙️ Operations</button>
+          <button class="nav-item" data-page="finance">💰 Finance</button>
+          <button class="nav-item" data-page="media">🖼️ Media / Photos</button>
+          <button class="nav-item" data-page="activity">📜 Activity Logs</button>
+          <button class="nav-item" data-page="locations">📍 Live Locations</button>
+          <button class="nav-item" data-page="storage">💾 Local Storage</button>
+          <button class="nav-item" data-page="backup">📦 Backup / Restore</button>
+          <button class="nav-item" data-page="settings">⚙️ Settings</button>
+          <button class="nav-item" data-page="system">🔧 System</button>
+        </nav>
+      </aside>
+
+      <div class="main-wrap">
+        <div class="topbar">
+          <div style="display:flex;align-items:center;gap:10px">
+            <button class="menu-btn secondary" id="menuBtn">☰</button>
+            <div>
+              <b id="pageTitle">Dashboard</b>
+              <div class="muted" style="font-size:11px" id="pageSub">Overview</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span id="connPill" class="pill">Local Mode</span>
+            <span id="userChip" class="user-chip">
+              <span class="avatar" id="topAvatar" style="width:24px;height:24px;font-size:11px">A</span>
+              <span id="topUser">Admin</span>
+            </span>
+            <button class="secondary" id="themeBtn" title="Theme">🌓</button>
+            <button class="secondary" id="logoutBtn">Logout</button>
+          </div>
+        </div>
+
+        <div class="content">
+          <!-- DASHBOARD -->
+          <section id="page-dashboard" class="page">
+            <div class="grid" id="kpiGrid"></div>
+            <div class="two-col">
+              <div class="card">
+                <h3 style="margin-bottom:10px">Recent Activity</h3>
+                <div id="recentActivity" class="muted">Loading…</div>
+              </div>
+              <div>
+                <div class="card" style="margin-bottom:12px">
+                  <h3 style="margin-bottom:8px">Quick Actions</h3>
+                  <div class="toolbar">
+                    <button data-goto="users">+ User</button>
+                    <button data-goto="sites" class="secondary">+ Site</button>
+                    <button data-goto="work" class="secondary">+ Work Order</button>
+                    <button data-goto="media" class="secondary">+ Photo</button>
+                  </div>
+                </div>
+                <div class="card">
+                  <h3 style="margin-bottom:8px">Storage Status</h3>
+                  <div id="storageStatus" class="muted">—</div>
+                  <div class="progress"><div id="storageBar" style="width:0%"></div></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- USERS -->
+          <section id="page-users" class="page hidden">
+            <div class="toolbar">
+              <input id="userSearch" placeholder="Search user…" style="flex:1;min-width:160px">
+              <button id="addUserBtn">+ Add User</button>
+              <button class="secondary" id="refreshUsers">Refresh</button>
+            </div>
+            <div class="card">
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Phone</th><th>Actions</th></tr></thead>
+                  <tbody id="userTable"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- SITES -->
+          <section id="page-sites" class="page hidden">
+            <div class="toolbar">
+              <input id="siteSearch" placeholder="Search site…" style="flex:1;min-width:160px">
+              <button id="addSiteBtn">+ Add Site</button>
+            </div>
+            <div class="card">
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Site</th><th>Location</th><th>Status</th><th>Photo</th><th>Actions</th></tr></thead>
+                  <tbody id="siteTable"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- WORK ORDERS -->
+          <section id="page-work" class="page hidden">
+            <div class="toolbar">
+              <input id="workSearch" placeholder="Search work order…" style="flex:1;min-width:140px">
+              <select id="workStatusFilter">
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="active">Active</option>
+                <option value="done">Done</option>
+              </select>
+              <button id="addWorkBtn">+ Work Order</button>
+            </div>
+            <div class="card">
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Order</th><th>Site</th><th>Status</th><th>Assigned</th><th>Actions</th></tr></thead>
+                  <tbody id="workTable"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- OPERATIONS -->
+          <section id="page-ops" class="page hidden">
+            <div class="toolbar">
+              <select id="opsType">
+                <option value="pgRuns">PG Runs</option>
+                <option value="fuelWallets">Fuel Wallets</option>
+                <option value="smsNotifications">SMS Notifications</option>
+              </select>
+              <input id="opsSearch" placeholder="Search…" style="flex:1;min-width:140px">
+              <button id="addOpsBtn">+ Add Entry</button>
+            </div>
+            <div class="card">
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Key / ID</th><th>Data</th><th>Actions</th></tr></thead>
+                  <tbody id="opsTable"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- FINANCE -->
+          <section id="page-finance" class="page hidden">
+            <div class="toolbar">
+              <input id="invSearch" placeholder="Search invoice…" style="flex:1;min-width:160px">
+              <button id="addInvBtn">+ Invoice</button>
+            </div>
+            <div class="card">
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Invoice</th><th>Amount</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+                  <tbody id="invTable"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- MEDIA / PHOTOS -->
+          <section id="page-media" class="page hidden">
+            <div class="card" style="margin-bottom:14px">
+              <h3 style="margin-bottom:10px">Upload Photos (Local Storage)</h3>
+              <div class="dropzone" id="dropzone">
+                <div style="font-size:28px;margin-bottom:6px">📷</div>
+                <div>Click or drop images here</div>
+                <div class="muted" style="font-size:12px;margin-top:4px">JPG, PNG, WebP • Stored in browser LocalStorage</div>
+                <input type="file" id="photoInput" accept="image/*" multiple hidden>
+              </div>
+              <div class="form-grid" style="margin-top:12px">
+                <div class="form-group">
+                  <label>Title / Tag</label>
+                  <input id="photoTitle" placeholder="e.g. Site A - Generator">
+                </div>
+                <div class="form-group">
+                  <label>Related To</label>
+                  <select id="photoRelated">
+                    <option value="">— None —</option>
+                    <option value="site">Site</option>
+                    <option value="user">User</option>
+                    <option value="work">Work Order</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              </div>
+              <button id="savePhotosBtn" style="margin-top:8px">Save Selected Photos</button>
+            </div>
+            <div class="toolbar">
+              <input id="mediaSearch" placeholder="Search photos…" style="flex:1;min-width:160px">
+              <button class="secondary" id="refreshMedia">Refresh</button>
+            </div>
+            <div class="photo-grid" id="photoGrid"></div>
+          </section>
+
+          <!-- ACTIVITY -->
+          <section id="page-activity" class="page hidden">
+            <div class="toolbar">
+              <input id="actSearch" placeholder="Search logs…" style="flex:1;min-width:160px">
+              <button class="secondary" id="clearLogsBtn">Clear Local Logs</button>
+              <button class="secondary" id="exportLogsBtn">Export Logs</button>
+            </div>
+            <div class="card">
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Time</th><th>Action</th><th>User</th><th>Details</th></tr></thead>
+                  <tbody id="actTable"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- LOCATIONS -->
+          <section id="page-locations" class="page hidden">
+            <div class="toolbar">
+              <button id="addLocBtn">+ Add Location</button>
+              <button class="secondary" id="refreshLoc">Refresh</button>
+            </div>
+            <div class="card">
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>ID / User</th><th>Lat</th><th>Lng</th><th>Updated</th><th>Actions</th></tr></thead>
+                  <tbody id="locTable"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- LOCAL STORAGE -->
+          <section id="page-storage" class="page hidden">
+            <div class="card" style="margin-bottom:14px">
+              <h3 style="margin-bottom:8px">Local Storage Overview</h3>
+              <div id="storageDetail" class="muted">—</div>
+              <div class="progress" style="margin:10px 0"><div id="storageBar2" style="width:0%"></div></div>
+              <div class="toolbar">
+                <button class="danger" id="clearAllLocal">Clear ALL Local Data</button>
+                <button class="secondary" id="refreshStorage">Refresh Stats</button>
+              </div>
+            </div>
+            <div class="card">
+              <h3 style="margin-bottom:10px">Stored Keys</h3>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Key</th><th>Size</th><th>Items</th><th>Actions</th></tr></thead>
+                  <tbody id="storageKeys"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- BACKUP -->
+          <section id="page-backup" class="page hidden">
+            <div class="two-col">
+              <div class="card">
+                <h3 style="margin-bottom:10px">📦 Export / Backup</h3>
+                <p class="muted" style="margin-bottom:12px">সব ডাটা (users, sites, work orders, photos, logs) একসাথে ডাউনলোড করুন।</p>
+                <div class="toolbar">
+                  <button id="backupJson">Download Full Backup (JSON)</button>
+                  <button class="secondary" id="backupPhotos">Download Photos Only</button>
+                </div>
+              </div>
+              <div class="card">
+                <h3 style="margin-bottom:10px">📥 Restore / Import</h3>
+                <p class="muted" style="margin-bottom:12px">আগের ব্যাকআপ ফাইল থেকে সব ডাটা ফিরিয়ে আনুন।</p>
+                <input type="file" id="restoreFile" accept=".json" style="margin-bottom:10px">
+                <button id="restoreBtn" class="success">Restore from File</button>
+              </div>
+            </div>
+            <div class="card" style="margin-top:14px">
+              <h3 style="margin-bottom:8px">Auto Local Save</h3>
+              <p class="muted">প্রতিটি পরিবর্তন স্বয়ংক্রিয়ভাবে LocalStorage-এ সেভ হয়। Firebase থাকলে sync-ও হয়।</p>
+              <div id="lastSaveInfo" class="muted" style="margin-top:8px">—</div>
+            </div>
+          </section>
+
+          <!-- SETTINGS -->
+          <section id="page-settings" class="page hidden">
+            <div class="card" style="max-width:560px">
+              <h3 style="margin-bottom:14px">Admin Settings</h3>
+              <div class="form-group">
+                <label>Local Admin Password</label>
+                <input id="setPass" type="password" placeholder="Change local password">
+              </div>
+              <div class="form-group">
+                <label>Company / Panel Name</label>
+                <input id="setName" placeholder="RAFINOOR">
+              </div>
+              <div class="form-group">
+                <label>Default Theme</label>
+                <select id="setTheme">
+                  <option value="dark">Dark</option>
+                  <option value="light">Light</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>
+                  <input type="checkbox" id="setAutoSync" style="width:auto;margin-right:6px">
+                  Auto sync with Firebase when online
+                </label>
+              </div>
+              <button id="saveSettingsBtn">Save Settings</button>
+            </div>
+          </section>
+
+          <!-- SYSTEM -->
+          <section id="page-system" class="page hidden">
+            <div class="two-col">
+              <div class="card">
+                <h3 style="margin-bottom:10px">System Info</h3>
+                <div id="sysInfo" class="muted"></div>
+              </div>
+              <div class="card">
+                <h3 style="margin-bottom:10px">Firebase Connection</h3>
+                <div id="fbInfo" class="muted">Checking…</div>
+                <div class="toolbar" style="margin-top:10px">
+                  <button id="fbConnectBtn" class="secondary">Reconnect Firebase</button>
+                </div>
+              </div>
+            </div>
+            <div class="card" style="margin-top:14px">
+              <h3 style="margin-bottom:10px">Event Log</h3>
+              <div id="eventLog" style="max-height:260px;overflow:auto" class="muted">—</div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GENERIC MODAL -->
+  <div id="modal" class="modal-bg hidden">
+    <div class="modal">
+      <h3 id="modalTitle">Form</h3>
+      <div id="modalBody"></div>
+      <div class="modal-actions">
+        <button class="secondary" id="modalCancel">Cancel</button>
+        <button id="modalSave">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHOTO VIEWER -->
+  <div id="photoModal" class="modal-bg hidden">
+    <div class="modal" style="max-width:800px;text-align:center">
+      <img id="photoViewImg" style="max-width:100%;max-height:60vh;border-radius:10px;margin-bottom:12px">
+      <div id="photoViewMeta" class="muted"></div>
+      <div class="modal-actions" style="justify-content:center">
+        <button class="secondary" id="photoViewClose">Close</button>
+        <button class="danger" id="photoDeleteBtn">Delete Photo</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js';
+    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js';
+    import { getDatabase, ref, onValue, set } from 'https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js';
+
+    const FB_CONFIG = {
+      apiKey: 'AIzaSyCtUJWCd94jxseVw1xkQJJTEO4qwIUg2G4',
+      authDomain: 'live-map-3ceeb.firebaseapp.com',
+      databaseURL: 'https://live-map-3ceeb-default-rtdb.firebaseio.com',
+      projectId: 'live-map-3ceeb',
+      storageBucket: 'live-map-3ceeb.firebasestorage.app',
+      messagingSenderId: '301571274340',
+      appId: '1:301571274340:web:f98b4249b574ce4c1f1171'
+    };
+
+    const LS_PREFIX = 'rafinoor_';
+    const LS_KEYS = {
+      users: LS_PREFIX + 'users',
+      sites: LS_PREFIX + 'sites',
+      workOrders: LS_PREFIX + 'workOrders',
+      pgRuns: LS_PREFIX + 'pgRuns',
+      fuelWallets: LS_PREFIX + 'fuelWallets',
+      smsNotifications: LS_PREFIX + 'smsNotifications',
+      invoices: LS_PREFIX + 'invoices',
+      liveLocations: LS_PREFIX + 'liveLocations',
+      activityLogs: LS_PREFIX + 'activityLogs',
+      photos: LS_PREFIX + 'photos',
+      settings: LS_PREFIX + 'settings',
+      onlineUsers: LS_PREFIX + 'onlineUsers',
+      loggedInUsers: LS_PREFIX + 'loggedInUsers'
+    };
+
+    let db = null, auth = null, fbReady = false, currentUser = null, isLocalMode = false;
+    let currentPage = 'dashboard';
+    let pendingPhotos = [];
+    let viewingPhotoId = null;
+    let modalCallback = null;
+
+    const $ = id => document.getElementById(id);
+    const $$ = sel => document.querySelectorAll(sel);
+
+    function lsGet(key, fallback = {}) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch { return fallback; }
+    }
+    function lsSet(key, data) {
+      try {
+        localStorage.setItem(key, JSON.stringify(data));
+        updateLastSave();
+        return true;
+      } catch (e) {
+        logEvent('LocalStorage full or error: ' + e.message);
+        alert('Local storage full! Please delete some photos or export & clear.');
+        return false;
+      }
+    }
+    function lsSize() {
+      let total = 0;
+      for (let k in localStorage) {
+        if (localStorage.hasOwnProperty(k) && k.startsWith(LS_PREFIX)) {
+          total += (localStorage[k]?.length || 0) * 2;
+        }
+      }
+      return total;
+    }
+    function formatBytes(b) {
+      if (b < 1024) return b + ' B';
+      if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+      return (b / 1048576).toFixed(2) + ' MB';
+    }
+
+    function getData(type) {
+      return lsGet(LS_KEYS[type] || (LS_PREFIX + type), {});
+    }
+    function setData(type, data) {
+      return lsSet(LS_KEYS[type] || (LS_PREFIX + type), data);
+    }
+    function addItem(type, id, item) {
+      const all = getData(type);
+      all[id] = { ...item, updatedAt: new Date().toISOString() };
+      setData(type, all);
+      logActivity('create', type, id, item);
+      return all;
+    }
+    function updateItem(type, id, item) {
+      const all = getData(type);
+      all[id] = { ...(all[id] || {}), ...item, updatedAt: new Date().toISOString() };
+      setData(type, all);
+      logActivity('update', type, id, item);
+      return all;
+    }
+    function deleteItem(type, id) {
+      const all = getData(type);
+      delete all[id];
+      setData(type, all);
+      logActivity('delete', type, id, {});
+      return all;
+    }
+
+    function logActivity(action, entity, id, details) {
+      const logs = getData('activityLogs');
+      const key = 'log_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+      logs[key] = {
+        action, entity, id,
+        details: typeof details === 'object' ? JSON.stringify(details).slice(0, 200) : String(details).slice(0, 200),
+        user: currentUser?.email || currentUser?.uid || (isLocalMode ? 'local-admin' : 'unknown'),
+        time: new Date().toISOString()
+      };
+      const keys = Object.keys(logs).sort();
+      if (keys.length > 500) {
+        keys.slice(0, keys.length - 500).forEach(k => delete logs[k]);
+      }
+      setData('activityLogs', logs);
+    }
+
+    function logEvent(msg) {
+      const el = $('eventLog');
+      if (!el) return;
+      const t = new Date().toLocaleTimeString();
+      el.innerHTML = `<div class="log-line"><span class="muted">${t}</span> — ${esc(msg)}</div>` + el.innerHTML;
+    }
+
+    function updateLastSave() {
+      const el = $('lastSaveInfo');
+      if (el) el.textContent = 'Last auto-save: ' + new Date().toLocaleString();
+    }
+
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
+      );
+    }
+
+    function uid(prefix = 'id') {
+      return prefix + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+    }
+
+    function badge(text, type = 'info') {
+      const map = { ok: 'b-ok', bad: 'b-bad', warn: 'b-warn', info: 'b-info' };
+      return `<span class="badge ${map[type] || 'b-info'}">${esc(text)}</span>`;
+    }
+
+    function ensureDefaults() {
+      if (!localStorage.getItem(LS_KEYS.settings)) {
+        setData('settings', {
+          name: 'RAFINOOR',
+          theme: 'dark',
+          localPass: 'admin123',
+          autoSync: true
+        });
+      }
+      if (Object.keys(getData('users')).length === 0) {
+        addItem('users', 'user_admin', {
+          name: 'Master Admin', email: 'admin@rafinoor.local', role: 'admin',
+          phone: '', status: 'active', photo: null
+        });
+      }
+    }
+
+    function applyTheme(t) {
+      document.documentElement.setAttribute('data-theme', t || 'dark');
+      const s = getData('settings');
+      s.theme = t;
+      setData('settings', s);
+    }
+
+    function showApp(userLabel) {
+      $('loginScreen').classList.add('hidden');
+      $('appScreen').classList.remove('hidden');
+      $('topUser').textContent = userLabel || 'Admin';
+      $('topAvatar').textContent = (userLabel || 'A')[0].toUpperCase();
+      const s = getData('settings');
+      applyTheme(s.theme || 'dark');
+      goPage('dashboard');
+      renderAll();
+      logEvent('Logged in: ' + userLabel);
+    }
+
+    function doLogout() {
+      if (auth && !isLocalMode) signOut(auth).catch(() => {});
+      isLocalMode = false;
+      currentUser = null;
+      $('appScreen').classList.add('hidden');
+      $('loginScreen').classList.remove('hidden');
+      $('loginErr').textContent = '';
+    }
+
+    $('localLoginBtn').onclick = () => {
+      const pass = $('localPass').value;
+      const s = getData('settings');
+      if (pass === (s.localPass || 'admin123')) {
+        isLocalMode = true;
+        currentUser = { email: 'local-admin', uid: 'local' };
+        $('connPill').textContent = 'Local Mode';
+        $('connPill').className = 'pill warn';
+        showApp('Local Admin');
+      } else {
+        $('loginErr').textContent = 'Wrong password';
+      }
+    };
+
+    try {
+      const app = initializeApp(FB_CONFIG);
+      auth = getAuth(app);
+      db = getDatabase(app);
+      fbReady = true;
+
+      $('googleBtn').onclick = () => {
+        signInWithPopup(auth, new GoogleAuthProvider())
+          .catch(e => { $('loginErr').textContent = e.message; });
+      };
+
+      onAuthStateChanged(auth, u => {
+        if (u) {
+          isLocalMode = false;
+          currentUser = u;
+          $('connPill').textContent = 'Firebase Connected';
+          $('connPill').className = 'pill ok';
+          showApp(u.email || u.uid);
+          startFirebaseSync();
+        }
+      });
+
+      onValue(ref(db, '.info/connected'), snap => {
+        if (!isLocalMode && currentUser) {
+          const ok = !!snap.val();
+          $('connPill').textContent = ok ? 'Firebase Connected' : 'Firebase Offline';
+          $('connPill').className = 'pill ' + (ok ? 'ok' : 'bad');
+        }
+      });
+    } catch (e) {
+      logEvent('Firebase init failed: ' + e.message);
+      $('googleBtn').disabled = true;
+      $('googleBtn').textContent = 'Firebase unavailable — use Local Login';
+    }
+
+    $('logoutBtn').onclick = doLogout;
+
+    function startFirebaseSync() {
+      if (!db || isLocalMode) return;
+      const paths = ['activityLogs', 'onlineUsers', 'loggedInUsers', 'sites', 'workOrders',
+        'pgRuns', 'fuelWallets', 'smsNotifications', 'invoices', 'liveLocations'];
+      paths.forEach(p => {
+        onValue(ref(db, p), snap => {
+          const val = snap.val() || {};
+          const local = getData(p);
+          const merged = { ...local, ...val };
+          setData(p, merged);
+          renderAll();
+          logEvent('Synced: ' + p);
+        }, err => logEvent('Sync error ' + p + ': ' + err.message));
+      });
+    }
+
+    async function pushToFirebase(type, id, data) {
+      if (!db || isLocalMode) return;
+      try {
+        await set(ref(db, `${type}/${id}`), data);
+      } catch (e) { logEvent('Push failed: ' + e.message); }
+    }
+
+    function goPage(name) {
+      currentPage = name;
+      $$('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === name));
+      $$('.page').forEach(p => p.classList.add('hidden'));
+      const page = $(`page-${name}`);
+      if (page) page.classList.remove('hidden');
+      const titles = {
+        dashboard: ['Dashboard', 'Overview & KPIs'],
+        users: ['Users', 'Manage all users'],
+        sites: ['Sites', 'Site management'],
+        work: ['Work Orders', 'Track & assign work'],
+        ops: ['Operations', 'PG / Fuel / SMS'],
+        finance: ['Finance', 'Invoices & billing'],
+        media: ['Media / Photos', 'Local photo storage'],
+        activity: ['Activity Logs', 'Audit trail'],
+        locations: ['Live Locations', 'GPS tracking'],
+        storage: ['Local Storage', 'Browser storage manager'],
+        backup: ['Backup / Restore', 'Export & import data'],
+        settings: ['Settings', 'Admin configuration'],
+        system: ['System', 'Health & diagnostics']
+      };
+      const t = titles[name] || [name, ''];
+      $('pageTitle').textContent = t[0];
+      $('pageSub').textContent = t[1];
+      renderAll();
+      $('sidebar').classList.remove('open');
+    }
+
+    $$('.nav-item').forEach(btn => {
+      btn.onclick = () => goPage(btn.dataset.page);
+    });
+    document.querySelectorAll('[data-goto]').forEach(btn => {
+      btn.onclick = () => goPage(btn.dataset.goto);
+    });
+    $('menuBtn').onclick = () => $('sidebar').classList.toggle('open');
+    $('themeBtn').onclick = () => {
+      const cur = document.documentElement.getAttribute('data-theme');
+      applyTheme(cur === 'dark' ? 'light' : 'dark');
+    };
+
+    function openModal(title, html, onSave) {
+      $('modalTitle').textContent = title;
+      $('modalBody').innerHTML = html;
+      $('modal').classList.remove('hidden');
+      $('modalSave').style.display = '';
+      modalCallback = onSave;
+    }
+    $('modalCancel').onclick = () => { $('modal').classList.add('hidden'); modalCallback = null; };
+    $('modalSave').onclick = () => {
+      if (modalCallback) {
+        const ok = modalCallback();
+        if (ok !== false) {
+          $('modal').classList.add('hidden');
+          modalCallback = null;
+          renderAll();
+        }
+      }
+    };
+    $('modal').onclick = e => { if (e.target === $('modal')) $('modalCancel').click(); };
+
+    function count(obj) { return Object.keys(obj || {}).length; }
+
+    function renderKPIs() {
+      const items = [
+        ['Users', count(getData('users')), 'users'],
+        ['Sites', count(getData('sites')), 'sites'],
+        ['Work Orders', count(getData('workOrders')), 'work'],
+        ['Photos', count(getData('photos')), 'media'],
+        ['Invoices', count(getData('invoices')), 'finance'],
+        ['Locations', count(getData('liveLocations')), 'locations'],
+        ['Activity Logs', count(getData('activityLogs')), 'activity'],
+        ['PG Runs', count(getData('pgRuns')), 'ops']
+      ];
+      $('kpiGrid').innerHTML = items.map(([label, n, page]) =>
+        `<div class="card" style="cursor:pointer" data-goto="${page}">
+          <div class="muted">${label}</div>
+          <div class="num">${n}</div>
+        </div>`
+      ).join('');
+      $('kpiGrid').querySelectorAll('[data-goto]').forEach(el => {
+        el.onclick = () => goPage(el.dataset.goto);
+      });
+    }
+
+    function renderStorageBar() {
+      const used = lsSize();
+      const limit = 5 * 1024 * 1024;
+      const pct = Math.min(100, (used / limit) * 100);
+      const txt = `Used: ${formatBytes(used)} / ~5 MB recommended`;
+      if ($('storageStatus')) $('storageStatus').textContent = txt;
+      if ($('storageBar')) $('storageBar').style.width = pct + '%';
+      if ($('storageBar2')) $('storageBar2').style.width = pct + '%';
+      if ($('storageDetail')) {
+        $('storageDetail').innerHTML = `
+          <div>Total local data: <b>${formatBytes(used)}</b></div>
+          <div style="margin-top:4px">Photos: <b>${count(getData('photos'))}</b> files</div>
+          <div style="margin-top:4px">Keys under <code>rafinoor_*</code></div>
+        `;
+      }
+    }
+
+    function renderRecentActivity() {
+      const logs = getData('activityLogs');
+      const rows = Object.entries(logs)
+        .sort((a, b) => (b[1].time || '').localeCompare(a[1].time || ''))
+        .slice(0, 12);
+      if (!rows.length) {
+        $('recentActivity').innerHTML = '<div class="empty">No activity yet</div>';
+        return;
+      }
+      $('recentActivity').innerHTML = rows.map(([, v]) =>
+        `<div class="log-line">
+          <span class="muted">${esc((v.time || '').replace('T', ' ').slice(0, 19))}</span>
+          — <b>${esc(v.action)}</b> ${esc(v.entity)}/${esc(v.id)}
+          <span class="muted">by ${esc(v.user)}</span>
+        </div>`
+      ).join('');
+    }
+
+    function renderUsers() {
+      const q = ($('userSearch')?.value || '').toLowerCase();
+      const users = getData('users');
+      const rows = Object.entries(users).filter(([, u]) =>
+        JSON.stringify(u).toLowerCase().includes(q)
+      );
+      $('userTable').innerHTML = rows.length ? rows.map(([id, u]) => `
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="avatar">${u.photo ? `<img src="${u.photo}" alt="">` : esc((u.name || '?')[0])}</div>
+              <div>
+                <div><b>${esc(u.name || id)}</b></div>
+                <div class="muted" style="font-size:12px">${esc(u.email || '')}</div>
+              </div>
+            </div>
+          </td>
+          <td>${badge(u.role || 'user')}</td>
+          <td>${badge(u.status || 'active', u.status === 'active' ? 'ok' : 'warn')}</td>
+          <td>${esc(u.phone || '—')}</td>
+          <td>
+            <button class="secondary" data-edit-user="${id}" style="padding:6px 10px">Edit</button>
+            <button class="danger" data-del-user="${id}" style="padding:6px 10px">Del</button>
+          </td>
+        </tr>
+      `).join('') : '<tr><td colspan="5" class="empty">No users</td></tr>';
+
+      $('userTable').querySelectorAll('[data-edit-user]').forEach(btn => {
+        btn.onclick = () => editUser(btn.dataset.editUser);
+      });
+      $('userTable').querySelectorAll('[data-del-user]').forEach(btn => {
+        btn.onclick = () => {
+          if (confirm('Delete this user?')) {
+            deleteItem('users', btn.dataset.delUser);
+            renderAll();
+          }
+        };
+      });
+    }
+
+    function userForm(data = {}) {
+      return `
+        <div class="form-grid">
+          <div class="form-group"><label>Name</label><input id="f_name" value="${esc(data.name || '')}"></div>
+          <div class="form-group"><label>Email</label><input id="f_email" value="${esc(data.email || '')}"></div>
+          <div class="form-group"><label>Phone</label><input id="f_phone" value="${esc(data.phone || '')}"></div>
+          <div class="form-group"><label>Role</label>
+            <select id="f_role">
+              <option value="admin" ${data.role === 'admin' ? 'selected' : ''}>Admin</option>
+              <option value="manager" ${data.role === 'manager' ? 'selected' : ''}>Manager</option>
+              <option value="operator" ${data.role === 'operator' ? 'selected' : ''}>Operator</option>
+              <option value="user" ${data.role === 'user' || !data.role ? 'selected' : ''}>User</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Status</label>
+            <select id="f_status">
+              <option value="active" ${data.status !== 'inactive' ? 'selected' : ''}>Active</option>
+              <option value="inactive" ${data.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+            </select>
+          </div>
+          <div class="form-group full"><label>Photo (base64 optional)</label>
+            <input id="f_photo" placeholder="data:image/... or leave blank">
+            ${data.photo ? `<img src="${data.photo}" class="thumb-lg" style="margin-top:8px">` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    function editUser(id) {
+      const data = id ? getData('users')[id] : {};
+      openModal(id ? 'Edit User' : 'Add User', userForm(data), () => {
+        const name = $('f_name').value.trim();
+        if (!name) { alert('Name required'); return false; }
+        const item = {
+          name,
+          email: $('f_email').value.trim(),
+          phone: $('f_phone').value.trim(),
+          role: $('f_role').value,
+          status: $('f_status').value,
+          photo: $('f_photo').value.trim() || data.photo || null
+        };
+        const newId = id || uid('user');
+        if (id) updateItem('users', id, item);
+        else addItem('users', newId, item);
+        pushToFirebase('loggedInUsers', newId, item);
+        return true;
+      });
+    }
+
+    $('addUserBtn').onclick = () => editUser(null);
+    $('userSearch').oninput = renderUsers;
+    $('refreshUsers').onclick = renderUsers;
+
+    function renderSites() {
+      const q = ($('siteSearch')?.value || '').toLowerCase();
+      const sites = getData('sites');
+      const rows = Object.entries(sites).filter(([, s]) =>
+        JSON.stringify(s).toLowerCase().includes(q)
+      );
+      $('siteTable').innerHTML = rows.length ? rows.map(([id, s]) => `
+        <tr>
+          <td><b>${esc(s.name || id)}</b><div class="muted" style="font-size:11px">${esc(id)}</div></td>
+          <td>${esc(s.location || s.address || '—')}</td>
+          <td>${badge(s.status || 'active', s.status === 'active' ? 'ok' : 'warn')}</td>
+          <td>${s.photo ? `<img src="${s.photo}" class="thumb" data-view-photo="1" data-src="${esc(s.photo)}">` : '—'}</td>
+          <td>
+            <button class="secondary" data-edit-site="${id}" style="padding:6px 10px">Edit</button>
+            <button class="danger" data-del-site="${id}" style="padding:6px 10px">Del</button>
+          </td>
+        </tr>
+      `).join('') : '<tr><td colspan="5" class="empty">No sites</td></tr>';
+
+      $('siteTable').querySelectorAll('[data-edit-site]').forEach(b => b.onclick = () => editSite(b.dataset.editSite));
+      $('siteTable').querySelectorAll('[data-del-site]').forEach(b => b.onclick = () => {
+        if (confirm('Delete site?')) { deleteItem('sites', b.dataset.delSite); renderAll(); }
+      });
+      $('siteTable').querySelectorAll('[data-view-photo]').forEach(img => {
+        img.onclick = () => showPhoto(img.dataset.src, 'Site photo');
+      });
+    }
+
+    function editSite(id) {
+      const data = id ? getData('sites')[id] : {};
+      openModal(id ? 'Edit Site' : 'Add Site', `
+        <div class="form-grid">
+          <div class="form-group"><label>Site Name</label><input id="f_name" value="${esc(data.name || '')}"></div>
+          <div class="form-group"><label>Location / Address</label><input id="f_loc" value="${esc(data.location || data.address || '')}"></div>
+          <div class="form-group"><label>Status</label>
+            <select id="f_status">
+              <option value="active" ${data.status !== 'inactive' ? 'selected' : ''}>Active</option>
+              <option value="inactive" ${data.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+              <option value="maintenance" ${data.status === 'maintenance' ? 'selected' : ''}>Maintenance</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Contact</label><input id="f_contact" value="${esc(data.contact || '')}"></div>
+          <div class="form-group full"><label>Notes</label><textarea id="f_notes" rows="2">${esc(data.notes || '')}</textarea></div>
+          <div class="form-group full"><label>Photo (base64 optional)</label>
+            <input id="f_photo" placeholder="Paste data:image/... or upload via Media">
+            ${data.photo ? `<img src="${data.photo}" class="thumb-lg" style="margin-top:8px">` : ''}
+          </div>
+        </div>
+      `, () => {
+        const name = $('f_name').value.trim();
+        if (!name) { alert('Name required'); return false; }
+        const item = {
+          name,
+          location: $('f_loc').value.trim(),
+          status: $('f_status').value,
+          contact: $('f_contact').value.trim(),
+          notes: $('f_notes').value.trim(),
+          photo: $('f_photo').value.trim() || data.photo || null
+        };
+        const newId = id || uid('site');
+        if (id) updateItem('sites', id, item);
+        else addItem('sites', newId, item);
+        pushToFirebase('sites', newId, item);
+        return true;
+      });
+    }
+
+    $('addSiteBtn').onclick = () => editSite(null);
+    $('siteSearch').oninput = renderSites;
+
+    function renderWork() {
+      const q = ($('workSearch')?.value || '').toLowerCase();
+      const filter = $('workStatusFilter')?.value || 'all';
+      let rows = Object.entries(getData('workOrders')).filter(([, w]) =>
+        JSON.stringify(w).toLowerCase().includes(q)
+      );
+      if (filter !== 'all') {
+        rows = rows.filter(([, w]) => String(w.status || '').toLowerCase().includes(filter));
+      }
+      $('workTable').innerHTML = rows.length ? rows.map(([id, w]) => `
+        <tr>
+          <td><b>${esc(w.title || id)}</b><div class="muted" style="font-size:11px">${esc(id)}</div></td>
+          <td>${esc(w.site || '—')}</td>
+          <td>${badge(w.status || 'pending', w.status === 'done' ? 'ok' : w.status === 'active' ? 'info' : 'warn')}</td>
+          <td>${esc(w.assignedTo || '—')}</td>
+          <td>
+            <button class="secondary" data-edit-work="${id}" style="padding:6px 10px">Edit</button>
+            <button class="danger" data-del-work="${id}" style="padding:6px 10px">Del</button>
+          </td>
+        </tr>
+      `).join('') : '<tr><td colspan="5" class="empty">No work orders</td></tr>';
+
+      $('workTable').querySelectorAll('[data-edit-work]').forEach(b => b.onclick = () => editWork(b.dataset.editWork));
+      $('workTable').querySelectorAll('[data-del-work]').forEach(b => b.onclick = () => {
+        if (confirm('Delete work order?')) { deleteItem('workOrders', b.dataset.delWork); renderAll(); }
+      });
+    }
+
+    function editWork(id) {
+      const data = id ? getData('workOrders')[id] : {};
+      const sites = getData('sites');
+      const siteOpts = Object.entries(sites).map(([sid, s]) =>
+        `<option value="${esc(s.name || sid)}" ${data.site === (s.name || sid) ? 'selected' : ''}>${esc(s.name || sid)}</option>`
+      ).join('');
+      openModal(id ? 'Edit Work Order' : 'Add Work Order', `
+        <div class="form-grid">
+          <div class="form-group full"><label>Title</label><input id="f_title" value="${esc(data.title || '')}"></div>
+          <div class="form-group"><label>Site</label>
+            <select id="f_site"><option value="">—</option>${siteOpts}</select>
+          </div>
+          <div class="form-group"><label>Status</label>
+            <select id="f_status">
+              <option value="pending" ${data.status === 'pending' || !data.status ? 'selected' : ''}>Pending</option>
+              <option value="active" ${data.status === 'active' ? 'selected' : ''}>Active</option>
+              <option value="done" ${data.status === 'done' ? 'selected' : ''}>Done</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Assigned To</label><input id="f_assigned" value="${esc(data.assignedTo || '')}"></div>
+          <div class="form-group"><label>Priority</label>
+            <select id="f_priority">
+              <option value="low" ${data.priority === 'low' ? 'selected' : ''}>Low</option>
+              <option value="medium" ${!data.priority || data.priority === 'medium' ? 'selected' : ''}>Medium</option>
+              <option value="high" ${data.priority === 'high' ? 'selected' : ''}>High</option>
+            </select>
+          </div>
+          <div class="form-group full"><label>Description</label><textarea id="f_desc" rows="3">${esc(data.description || '')}</textarea></div>
+        </div>
+      `, () => {
+        const title = $('f_title').value.trim();
+        if (!title) { alert('Title required'); return false; }
+        const item = {
+          title,
+          site: $('f_site').value,
+          status: $('f_status').value,
+          assignedTo: $('f_assigned').value.trim(),
+          priority: $('f_priority').value,
+          description: $('f_desc').value.trim()
+        };
+        const newId = id || uid('wo');
+        if (id) updateItem('workOrders', id, item);
+        else addItem('workOrders', newId, item);
+        pushToFirebase('workOrders', newId, item);
+        return true;
+      });
+    }
+
+    $('addWorkBtn').onclick = () => editWork(null);
+    $('workSearch').oninput = renderWork;
+    $('workStatusFilter').onchange = renderWork;
+
+    function renderOps() {
+      const type = $('opsType')?.value || 'pgRuns';
+      const q = ($('opsSearch')?.value || '').toLowerCase();
+      const data = getData(type);
+      const rows = Object.entries(data).filter(([k, v]) =>
+        (k + JSON.stringify(v)).toLowerCase().includes(q)
+      );
+      $('opsTable').innerHTML = rows.length ? rows.map(([id, v]) => `
+        <tr>
+          <td><b>${esc(id)}</b></td>
+          <td><pre>${esc(JSON.stringify(v, null, 2))}</pre></td>
+          <td>
+            <button class="secondary" data-edit-ops="${id}" style="padding:6px 10px">Edit</button>
+            <button class="danger" data-del-ops="${id}" style="padding:6px 10px">Del</button>
+          </td>
+        </tr>
+      `).join('') : '<tr><td colspan="3" class="empty">No data</td></tr>';
+
+      $('opsTable').querySelectorAll('[data-edit-ops]').forEach(b => {
+        b.onclick = () => {
+          const type = $('opsType').value;
+          const item = getData(type)[b.dataset.editOps];
+          openModal('Edit ' + type, `
+            <div class="form-group"><label>JSON Data</label>
+              <textarea id="f_json" rows="10" style="width:100%;font-family:monospace">${esc(JSON.stringify(item, null, 2))}</textarea>
+            </div>
+          `, () => {
+            try {
+              const parsed = JSON.parse($('f_json').value);
+              updateItem(type, b.dataset.editOps, parsed);
+              pushToFirebase(type, b.dataset.editOps, parsed);
+              return true;
+            } catch { alert('Invalid JSON'); return false; }
+          });
+        };
+      });
+      $('opsTable').querySelectorAll('[data-del-ops]').forEach(b => {
+        b.onclick = () => {
+          if (confirm('Delete?')) {
+            deleteItem($('opsType').value, b.dataset.delOps);
+            renderAll();
+          }
+        };
+      });
+    }
+
+    $('opsType').onchange = renderOps;
+    $('opsSearch').oninput = renderOps;
+    $('addOpsBtn').onclick = () => {
+      const type = $('opsType').value;
+      openModal('Add ' + type, `
+        <div class="form-group"><label>ID / Key</label><input id="f_id" placeholder="auto if empty"></div>
+        <div class="form-group"><label>JSON Data</label>
+          <textarea id="f_json" rows="8" style="width:100%;font-family:monospace">{\n  "note": ""\n}</textarea>
+        </div>
+      `, () => {
+        try {
+          const parsed = JSON.parse($('f_json').value);
+          const id = $('f_id').value.trim() || uid(type.slice(0, 3));
+          addItem(type, id, parsed);
+          pushToFirebase(type, id, parsed);
+          return true;
+        } catch { alert('Invalid JSON'); return false; }
+      });
+    };
+
+    function renderFinance() {
+      const q = ($('invSearch')?.value || '').toLowerCase();
+      const rows = Object.entries(getData('invoices')).filter(([, v]) =>
+        JSON.stringify(v).toLowerCase().includes(q)
+      );
+      $('invTable').innerHTML = rows.length ? rows.map(([id, inv]) => `
+        <tr>
+          <td><b>${esc(inv.number || id)}</b></td>
+          <td>${esc(inv.amount ?? '—')}</td>
+          <td>${badge(inv.status || 'pending', inv.status === 'paid' ? 'ok' : 'warn')}</td>
+          <td class="muted">${esc((inv.date || inv.updatedAt || '').slice(0, 10))}</td>
+          <td>
+            <button class="secondary" data-edit-inv="${id}" style="padding:6px 10px">Edit</button>
+            <button class="danger" data-del-inv="${id}" style="padding:6px 10px">Del</button>
+          </td>
+        </tr>
+      `).join('') : '<tr><td colspan="5" class="empty">No invoices</td></tr>';
+
+      $('invTable').querySelectorAll('[data-edit-inv]').forEach(b => b.onclick = () => editInv(b.dataset.editInv));
+      $('invTable').querySelectorAll('[data-del-inv]').forEach(b => b.onclick = () => {
+        if (confirm('Delete invoice?')) { deleteItem('invoices', b.dataset.delInv); renderAll(); }
+      });
+    }
+
+    function editInv(id) {
+      const data = id ? getData('invoices')[id] : {};
+      openModal(id ? 'Edit Invoice' : 'Add Invoice', `
+        <div class="form-grid">
+          <div class="form-group"><label>Invoice No</label><input id="f_num" value="${esc(data.number || '')}"></div>
+          <div class="form-group"><label>Amount</label><input id="f_amt" type="number" value="${esc(data.amount ?? '')}"></div>
+          <div class="form-group"><label>Status</label>
+            <select id="f_status">
+              <option value="pending" ${data.status !== 'paid' ? 'selected' : ''}>Pending</option>
+              <option value="paid" ${data.status === 'paid' ? 'selected' : ''}>Paid</option>
+              <option value="cancelled" ${data.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Date</label><input id="f_date" type="date" value="${esc((data.date || '').slice(0, 10))}"></div>
+          <div class="form-group full"><label>Notes</label><textarea id="f_notes" rows="2">${esc(data.notes || '')}</textarea></div>
+        </div>
+      `, () => {
+        const item = {
+          number: $('f_num').value.trim() || uid('INV'),
+          amount: parseFloat($('f_amt').value) || 0,
+          status: $('f_status').value,
+          date: $('f_date').value || new Date().toISOString().slice(0, 10),
+          notes: $('f_notes').value.trim()
+        };
+        const newId = id || uid('inv');
+        if (id) updateItem('invoices', id, item);
+        else addItem('invoices', newId, item);
+        pushToFirebase('invoices', newId, item);
+        return true;
+      });
+    }
+
+    $('addInvBtn').onclick = () => editInv(null);
+    $('invSearch').oninput = renderFinance;
+
+    const dropzone = $('dropzone');
+    const photoInput = $('photoInput');
+
+    dropzone.onclick = () => photoInput.click();
+    dropzone.ondragover = e => { e.preventDefault(); dropzone.classList.add('drag'); };
+    dropzone.ondragleave = () => dropzone.classList.remove('drag');
+    dropzone.ondrop = e => {
+      e.preventDefault();
+      dropzone.classList.remove('drag');
+      handleFiles(e.dataTransfer.files);
+    };
+    photoInput.onchange = () => handleFiles(photoInput.files);
+
+    function handleFiles(files) {
+      pendingPhotos = [];
+      Array.from(files).forEach(file => {
+        if (!file.type.startsWith('image/')) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          pendingPhotos.push({
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            data: reader.result
+          });
+          dropzone.innerHTML = `<div style="font-size:20px">✅ ${pendingPhotos.length} photo(s) ready</div>
+            <div class="muted" style="font-size:12px;margin-top:4px">Click "Save Selected Photos"</div>`;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    $('savePhotosBtn').onclick = () => {
+      if (!pendingPhotos.length) {
+        alert('First select photos');
+        return;
+      }
+      const title = $('photoTitle').value.trim() || 'Photo';
+      const related = $('photoRelated').value;
+      const photos = getData('photos');
+      pendingPhotos.forEach((p, i) => {
+        const id = uid('photo');
+        photos[id] = {
+          title: title + (pendingPhotos.length > 1 ? ` (${i + 1})` : ''),
+          related,
+          name: p.name,
+          type: p.type,
+          size: p.size,
+          data: p.data,
+          createdAt: new Date().toISOString()
+        };
+      });
+      if (!setData('photos', photos)) return;
+      logActivity('upload', 'photos', 'batch', { count: pendingPhotos.length });
+      pendingPhotos = [];
+      photoInput.value = '';
+      dropzone.innerHTML = `
+        <div style="font-size:28px;margin-bottom:6px">📷</div>
+        <div>Click or drop images here</div>
+        <div class="muted" style="font-size:12px;margin-top:4px">JPG, PNG, WebP • Stored locally</div>
+      `;
+      $('photoTitle').value = '';
+      renderAll();
+      logEvent('Photos saved to local storage');
+    };
+
+    function renderMedia() {
+      const q = ($('mediaSearch')?.value || '').toLowerCase();
+      const photos = getData('photos');
+      const rows = Object.entries(photos).filter(([, p]) =>
+        (p.title + p.name + (p.related || '')).toLowerCase().includes(q)
+      ).sort((a, b) => (b[1].createdAt || '').localeCompare(a[1].createdAt || ''));
+
+      if (!rows.length) {
+        $('photoGrid').innerHTML = '<div class="empty" style="grid-column:1/-1">No photos yet. Upload above.</div>';
+        return;
+      }
+      $('photoGrid').innerHTML = rows.map(([id, p]) => `
+        <div class="photo-card" data-photo-id="${id}">
+          <img src="${p.data}" alt="${esc(p.title)}" loading="lazy">
+          <div class="meta">
+            <div><b>${esc(p.title || p.name)}</b></div>
+            <div class="muted">${formatBytes(p.size || 0)} · ${esc(p.related || '')}</div>
+          </div>
+        </div>
+      `).join('');
+
+      $('photoGrid').querySelectorAll('[data-photo-id]').forEach(card => {
+        card.onclick = () => {
+          const id = card.dataset.photoId;
+          const p = getData('photos')[id];
+          if (!p) return;
+          viewingPhotoId = id;
+          $('photoViewImg').src = p.data;
+          $('photoViewMeta').innerHTML = `<b>${esc(p.title)}</b><br>${esc(p.name)} · ${formatBytes(p.size || 0)}<br>${esc(p.createdAt || '')}`;
+          $('photoDeleteBtn').classList.remove('hidden');
+          $('photoModal').classList.remove('hidden');
+        };
+      });
+    }
+
+    $('photoViewClose').onclick = () => { $('photoModal').classList.add('hidden'); viewingPhotoId = null; };
+    $('photoModal').onclick = e => { if (e.target === $('photoModal')) $('photoViewClose').click(); };
+    $('photoDeleteBtn').onclick = () => {
+      if (!viewingPhotoId || !confirm('Delete this photo?')) return;
+      deleteItem('photos', viewingPhotoId);
+      $('photoViewClose').click();
+      renderAll();
+    };
+    $('mediaSearch').oninput = renderMedia;
+    $('refreshMedia').onclick = renderMedia;
+
+    function showPhoto(src, title) {
+      viewingPhotoId = null;
+      $('photoViewImg').src = src;
+      $('photoViewMeta').textContent = title || '';
+      $('photoDeleteBtn').classList.add('hidden');
+      $('photoModal').classList.remove('hidden');
+    }
+
+    function renderActivity() {
+      const q = ($('actSearch')?.value || '').toLowerCase();
+      const logs = getData('activityLogs');
+      const rows = Object.entries(logs)
+        .filter(([, v]) => JSON.stringify(v).toLowerCase().includes(q))
+        .sort((a, b) => (b[1].time || '').localeCompare(a[1].time || ''))
+        .slice(0, 200);
+      $('actTable').innerHTML = rows.length ? rows.map(([, v]) => `
+        <tr>
+          <td class="muted">${esc((v.time || '').replace('T', ' ').slice(0, 19))}</td>
+          <td>${badge(v.action || '—')}</td>
+          <td>${esc(v.user || '—')}</td>
+          <td>${esc(v.entity)}/${esc(v.id)} <span class="muted">${esc(v.details || '')}</span></td>
+        </tr>
+      `).join('') : '<tr><td colspan="4" class="empty">No logs</td></tr>';
+    }
+
+    $('actSearch').oninput = renderActivity;
+    $('clearLogsBtn').onclick = () => {
+      if (confirm('Clear all local activity logs?')) {
+        setData('activityLogs', {});
+        renderAll();
+      }
+    };
+    $('exportLogsBtn').onclick = () => {
+      const blob = new Blob([JSON.stringify(getData('activityLogs'), null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'rafinoor-activity-logs.json';
+      a.click();
+    };
+
+    function renderLocations() {
+      const locs = getData('liveLocations');
+      const rows = Object.entries(locs);
+      $('locTable').innerHTML = rows.length ? rows.map(([id, l]) => `
+        <tr>
+          <td><b>${esc(l.user || id)}</b></td>
+          <td>${esc(l.lat ?? l.latitude ?? '—')}</td>
+          <td>${esc(l.lng ?? l.longitude ?? '—')}</td>
+          <td class="muted">${esc((l.updatedAt || l.time || '').toString().slice(0, 19))}</td>
+          <td>
+            <button class="secondary" data-edit-loc="${id}" style="padding:6px 10px">Edit</button>
+            <button class="danger" data-del-loc="${id}" style="padding:6px 10px">Del</button>
+          </td>
+        </tr>
+      `).join('') : '<tr><td colspan="5" class="empty">No locations</td></tr>';
+
+      $('locTable').querySelectorAll('[data-edit-loc]').forEach(b => {
+        b.onclick = () => {
+          const data = getData('liveLocations')[b.dataset.editLoc] || {};
+          openModal('Edit Location', `
+            <div class="form-grid">
+              <div class="form-group"><label>User / Label</label><input id="f_user" value="${esc(data.user || '')}"></div>
+              <div class="form-group"><label>Lat</label><input id="f_lat" type="number" step="any" value="${esc(data.lat ?? data.latitude ?? '')}"></div>
+              <div class="form-group"><label>Lng</label><input id="f_lng" type="number" step="any" value="${esc(data.lng ?? data.longitude ?? '')}"></div>
+            </div>
+          `, () => {
+            const item = {
+              user: $('f_user').value.trim(),
+              lat: parseFloat($('f_lat').value),
+              lng: parseFloat($('f_lng').value),
+              updatedAt: new Date().toISOString()
+            };
+            updateItem('liveLocations', b.dataset.editLoc, item);
+            pushToFirebase('liveLocations', b.dataset.editLoc, item);
+            return true;
+          });
+        };
+      });
+      $('locTable').querySelectorAll('[data-del-loc]').forEach(b => {
+        b.onclick = () => {
+          if (confirm('Delete?')) { deleteItem('liveLocations', b.dataset.delLoc); renderAll(); }
+        };
+      });
+    }
+
+    $('addLocBtn').onclick = () => {
+      openModal('Add Location', `
+        <div class="form-grid">
+          <div class="form-group"><label>User / Label</label><input id="f_user"></div>
+          <div class="form-group"><label>Lat</label><input id="f_lat" type="number" step="any"></div>
+          <div class="form-group"><label>Lng</label><input id="f_lng" type="number" step="any"></div>
+        </div>
+      `, () => {
+        const id = uid('loc');
+        const item = {
+          user: $('f_user').value.trim() || id,
+          lat: parseFloat($('f_lat').value) || 0,
+          lng: parseFloat($('f_lng').value) || 0,
+          updatedAt: new Date().toISOString()
+        };
+        addItem('liveLocations', id, item);
+        pushToFirebase('liveLocations', id, item);
+        return true;
+      });
+    };
+    $('refreshLoc').onclick = renderLocations;
+
+    function renderStoragePage() {
+      renderStorageBar();
+      const keys = Object.keys(LS_KEYS);
+      $('storageKeys').innerHTML = keys.map(k => {
+        const data = getData(k);
+        const raw = localStorage.getItem(LS_KEYS[k]) || '';
+        const size = raw.length * 2;
+        return `
+          <tr>
+            <td><code>${esc(LS_KEYS[k])}</code></td>
+            <td>${formatBytes(size)}</td>
+            <td>${count(data)}</td>
+            <td>
+              <button class="secondary" data-view-key="${k}" style="padding:6px 10px">View</button>
+              <button class="danger" data-clear-key="${k}" style="padding:6px 10px">Clear</button>
+            </td>
+          </tr>`;
+      }).join('');
+
+      $('storageKeys').querySelectorAll('[data-view-key]').forEach(b => {
+        b.onclick = () => {
+          const data = getData(b.dataset.viewKey);
+          openModal('View: ' + b.dataset.viewKey, `<pre style="max-height:400px;overflow:auto">${esc(JSON.stringify(data, null, 2).slice(0, 15000))}</pre>`, () => true);
+          $('modalSave').style.display = 'none';
+        };
+      });
+      $('storageKeys').querySelectorAll('[data-clear-key]').forEach(b => {
+        b.onclick = () => {
+          if (confirm('Clear ' + b.dataset.clearKey + '?')) {
+            setData(b.dataset.clearKey, {});
+            renderAll();
+          }
+        };
+      });
+    }
+
+    $('clearAllLocal').onclick = () => {
+      if (!confirm('সব Local ডাটা মুছে যাবে (photos সহ)। নিশ্চিত?')) return;
+      if (!confirm('Last chance — really delete EVERYTHING local?')) return;
+      Object.values(LS_KEYS).forEach(k => localStorage.removeItem(k));
+      ensureDefaults();
+      renderAll();
+      logEvent('All local data cleared');
+    };
+    $('refreshStorage').onclick = renderStoragePage;
+
+    $('backupJson').onclick = () => {
+      const full = {};
+      Object.keys(LS_KEYS).forEach(k => { full[k] = getData(k); });
+      full._meta = { exportedAt: new Date().toISOString(), version: 1 };
+      const blob = new Blob([JSON.stringify(full, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `rafinoor-full-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      logEvent('Full backup downloaded');
+    };
+
+    $('backupPhotos').onclick = () => {
+      const photos = getData('photos');
+      const blob = new Blob([JSON.stringify(photos, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `rafinoor-photos-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+    };
+
+    $('restoreBtn').onclick = () => {
+      const file = $('restoreFile').files[0];
+      if (!file) { alert('Select a backup JSON file'); return; }
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          if (!confirm('This will overwrite current local data. Continue?')) return;
+          Object.keys(LS_KEYS).forEach(k => {
+            if (data[k] !== undefined) setData(k, data[k]);
+          });
+          ensureDefaults();
+          renderAll();
+          logEvent('Restored from backup file');
+          alert('Restore complete!');
+        } catch (e) {
+          alert('Invalid backup file: ' + e.message);
+        }
+      };
+      reader.readAsText(file);
+    };
+
+    function loadSettingsForm() {
+      const s = getData('settings');
+      if ($('setName')) $('setName').value = s.name || 'RAFINOOR';
+      if ($('setTheme')) $('setTheme').value = s.theme || 'dark';
+      if ($('setAutoSync')) $('setAutoSync').checked = s.autoSync !== false;
+      if ($('setPass')) $('setPass').value = '';
+    }
+
+    $('saveSettingsBtn').onclick = () => {
+      const s = getData('settings');
+      s.name = $('setName').value.trim() || 'RAFINOOR';
+      s.theme = $('setTheme').value;
+      s.autoSync = $('setAutoSync').checked;
+      if ($('setPass').value.trim()) s.localPass = $('setPass').value.trim();
+      setData('settings', s);
+      applyTheme(s.theme);
+      alert('Settings saved');
+      logEvent('Settings updated');
+    };
+
+    function renderSystem() {
+      $('sysInfo').innerHTML = `
+        <div>Browser: ${esc(navigator.userAgent.slice(0, 80))}…</div>
+        <div style="margin-top:6px">Local data size: <b>${formatBytes(lsSize())}</b></div>
+        <div style="margin-top:6px">Mode: <b>${isLocalMode ? 'Local Admin' : 'Firebase Auth'}</b></div>
+        <div style="margin-top:6px">User: <b>${esc(currentUser?.email || currentUser?.uid || '—')}</b></div>
+        <div style="margin-top:6px">Time: ${new Date().toLocaleString()}</div>
+      `;
+      $('fbInfo').innerHTML = fbReady
+        ? `<div class="ok">Firebase SDK loaded</div>
+           <div style="margin-top:6px">Project: live-map-3ceeb</div>
+           <div style="margin-top:6px">Status: ${isLocalMode ? 'Not used (local mode)' : 'Active'}</div>`
+        : `<div class="bad">Firebase not available</div>`;
+    }
+
+    $('fbConnectBtn').onclick = () => {
+      if (fbReady && !isLocalMode) startFirebaseSync();
+      else alert(isLocalMode ? 'You are in Local Mode. Logout and use Google login for Firebase.' : 'Firebase not ready');
+    };
+
+    function renderAll() {
+      renderKPIs();
+      renderStorageBar();
+      renderRecentActivity();
+      if (currentPage === 'users') renderUsers();
+      if (currentPage === 'sites') renderSites();
+      if (currentPage === 'work') renderWork();
+      if (currentPage === 'ops') renderOps();
+      if (currentPage === 'finance') renderFinance();
+      if (currentPage === 'media') renderMedia();
+      if (currentPage === 'activity') renderActivity();
+      if (currentPage === 'locations') renderLocations();
+      if (currentPage === 'storage') renderStoragePage();
+      if (currentPage === 'settings') loadSettingsForm();
+      if (currentPage === 'system') renderSystem();
+      if (currentPage === 'backup') updateLastSave();
+    }
+
+    ensureDefaults();
+  </script>
+</body>
+</html>
